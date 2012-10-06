@@ -89,7 +89,14 @@
   <exefile>$(OutDir)\$(ProjectName)-d.dll</exefile>
   <additionalOptions />
   <preBuildCommand />
-  <postBuildCommand />
+  <postBuildCommand>if exist ..\devenv (
+    copy $(TARGETPATH) ..\devenv\config\addons\$(TARGETFILENAME)
+    if errorlevel 1 goto reportError
+    if exist $(TARGETDIR)\$(TARGETNAME).pdb (
+        copy $(TARGETDIR)\$(TARGETNAME).pdb ..\devenv\config\addons\$(TARGETNAME).pdb
+        if errorlevel 1 goto reportError
+    )
+)</postBuildCommand>
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Config name="Release" platform="Win32">
@@ -181,7 +188,14 @@
   <exefile>$(OutDir)\$(ProjectName).dll</exefile>
   <additionalOptions />
   <preBuildCommand />
-  <postBuildCommand />
+  <postBuildCommand>if exist ..\devenv (
+    copy $(TARGETPATH) ..\devenv\config\addons\$(TARGETFILENAME)
+    if errorlevel 1 goto reportError
+    if exist $(TARGETDIR)\$(TARGETNAME).pdb (
+        copy $(TARGETDIR)\$(TARGETNAME).pdb ..\devenv\config\addons\$(TARGETNAME).pdb
+        if errorlevel 1 goto reportError
+    )
+)</postBuildCommand>
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Folder name="hcspeech">
