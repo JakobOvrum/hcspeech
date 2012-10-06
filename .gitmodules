@@ -1,0 +1,3 @@
+[submodule "xchatd"]
+	path = xchatd
+	url = git://github.com/JakobOvrum/xchatd.git

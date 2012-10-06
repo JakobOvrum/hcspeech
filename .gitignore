@@ -1,0 +1,8 @@
+# Binaries
+/bin
+
+# Visual Studio
+*.suo
+
+# Development Environment (XChat Client)
+/devenv
