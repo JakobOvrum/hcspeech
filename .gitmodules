@@ -1,3 +1,6 @@
 [submodule "xchatd"]
 	path = xchatd
 	url = git://github.com/JakobOvrum/xchatd.git
+[submodule "speech4d"]
+	path = speech4d
+	url = git://github.com/JakobOvrum/speech4d.git
