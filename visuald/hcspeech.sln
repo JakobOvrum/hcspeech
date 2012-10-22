@@ -3,25 +3,39 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "hcspeech", "hcspeech.visualdproj", "{D02C5C65-180D-4F7D-8FB6-5A9BFF758801}"
 	ProjectSection(ProjectDependencies) = postProject
+		{0B7E2430-B3F6-43EC-92AA-E7E4E23747E7} = {0B7E2430-B3F6-43EC-92AA-E7E4E23747E7}
 		{F0789573-0258-45D4-A57F-8DC2EDB3A749} = {F0789573-0258-45D4-A57F-8DC2EDB3A749}
 	EndProjectSection
 EndProject
 Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "xchatd", "..\xchatd\visuald\xchatd.visualdproj", "{F0789573-0258-45D4-A57F-8DC2EDB3A749}"
 EndProject
+Project("{002A2DE9-8BB6-484D-9802-7E4AD4084715}") = "speech4d-windows", "..\speech4d\visuald\speech4d-windows.visualdproj", "{0B7E2430-B3F6-43EC-92AA-E7E4E23747E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Release|Win32 = Release|Win32
+		Test|Win32 = Test|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D02C5C65-180D-4F7D-8FB6-5A9BFF758801}.Debug|Win32.ActiveCfg = Debug|Win32
 		{D02C5C65-180D-4F7D-8FB6-5A9BFF758801}.Debug|Win32.Build.0 = Debug|Win32
 		{D02C5C65-180D-4F7D-8FB6-5A9BFF758801}.Release|Win32.ActiveCfg = Release|Win32
 		{D02C5C65-180D-4F7D-8FB6-5A9BFF758801}.Release|Win32.Build.0 = Release|Win32
+		{D02C5C65-180D-4F7D-8FB6-5A9BFF758801}.Test|Win32.ActiveCfg = Release|Win32
+		{D02C5C65-180D-4F7D-8FB6-5A9BFF758801}.Test|Win32.Build.0 = Release|Win32
 		{F0789573-0258-45D4-A57F-8DC2EDB3A749}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F0789573-0258-45D4-A57F-8DC2EDB3A749}.Debug|Win32.Build.0 = Debug|Win32
 		{F0789573-0258-45D4-A57F-8DC2EDB3A749}.Release|Win32.ActiveCfg = Release|Win32
 		{F0789573-0258-45D4-A57F-8DC2EDB3A749}.Release|Win32.Build.0 = Release|Win32
+		{F0789573-0258-45D4-A57F-8DC2EDB3A749}.Test|Win32.ActiveCfg = Release|Win32
+		{F0789573-0258-45D4-A57F-8DC2EDB3A749}.Test|Win32.Build.0 = Release|Win32
+		{0B7E2430-B3F6-43EC-92AA-E7E4E23747E7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0B7E2430-B3F6-43EC-92AA-E7E4E23747E7}.Debug|Win32.Build.0 = Debug|Win32
+		{0B7E2430-B3F6-43EC-92AA-E7E4E23747E7}.Release|Win32.ActiveCfg = Release|Win32
+		{0B7E2430-B3F6-43EC-92AA-E7E4E23747E7}.Release|Win32.Build.0 = Release|Win32
+		{0B7E2430-B3F6-43EC-92AA-E7E4E23747E7}.Test|Win32.ActiveCfg = Test|Win32
+		{0B7E2430-B3F6-43EC-92AA-E7E4E23747E7}.Test|Win32.Build.0 = Test|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
