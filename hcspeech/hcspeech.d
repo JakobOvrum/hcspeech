@@ -55,7 +55,7 @@ private Voice getUserVoice(ChannelInfo channel, in char[] nick)
 	if(auto voice = nick in userVoices)
 		return *voice;
 
-	auto voiceIndex = 0;
+	size_t voiceIndex = 0;
 	auto leastUses = uint.max;
 
 	foreach(i, uses; channel.voiceDistribution)
@@ -140,11 +140,20 @@ EatMode assignVoiceCommand(in char[][] words, in char[][] words_eol)
 	{
 		writefln("Specified name matches multiple voices. Which did you mean?");
 		auto app = appender!string();
-			
-		(&firstVoice)[0 .. 1].chain(voices)
-			.map!(voice => voice.name)()
-			.joiner(", ")
-			.copy(app);
+		
+		static if(__VERSION__ < 2060)
+		{
+			auto names = map!(voice => voice.name)((&firstVoice)[0 .. 1].chain(voices));
+			auto joined = joiner(names, ", ");
+			copy(joined, app);
+		}
+		else
+		{
+			(&firstVoice)[0 .. 1].chain(voices)
+				.map!(voice => voice.name)()
+				.joiner(", ")
+				.copy(app);
+		}
 
 		writefln(app.data);
 	}
@@ -294,8 +303,12 @@ void saveSettings()
 	}
 }
 
+version(GNU) extern(C) void gc_init();
+
 void init(ref PluginInfo info)
 {
+	version(GNU) gc_init();
+	
 	info.name = "hcspeech";
 	info.description = "Text To Speech";
 	info.version_ = "0.1";
