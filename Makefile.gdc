@@ -1,0 +1,67 @@
+BUILD ?= release
+MODEL ?= $(shell getconf LONG_BIT)
+
+UNAME ?= $(shell uname)
+
+ifeq ($(UNAME), Linux)
+	DLL =$1.so
+	EXTRALIBS =
+else # Assume Windows
+	DLL =$1.dll
+	EXTRALIBS = -luuid -lole32 "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\sapi.lib"
+endif
+
+ifneq ($(MODEL), 32)
+	ifneq ($(MODEL), 64)
+		$(error Unsupported architecture: $(MODEL))
+	endif
+endif
+
+ifneq ($(BUILD), debug)
+	ifneq ($(BUILD), release)
+		$(error Unknown build mode: $(BUILD))
+	endif
+endif
+
+DFLAGS = $(FLAGS) -shared -Wall -fproperty -Ixchatd -Ispeech4d -m$(MODEL)
+
+ifeq ($(BUILD), release)
+	DFLAGS += -frelease -O3 -finline-functions -fno-bounds-check
+else
+	DFLAGS += -fdebug -g
+	DEBUGSUFFIX = -d
+endif
+
+ifeq ($(MODEL), 32)
+	OUTDIR = bin32
+	LIBDIR = lib32
+else
+	OUTDIR = bin
+	LIBDIR = lib
+endif
+
+HCSPEECH_OUTPUTFILE = $(call DLL,hcspeech$(DEBUGSUFFIX))
+HCSPEECH_OUTPUTPATH = $(OUTDIR)/$(HCSPEECH_OUTPUTFILE)
+
+HCSPEECH_LIBS = xchatd/$(LIBDIR)/libxchatd$(DEBUGSUFFIX).a speech4d/$(LIBDIR)/libspeech4d$(DEBUGSUFFIX).a
+HCSPEECH_SOURCES = hcspeech/hcspeech.d
+
+all: xchatd speech4d $(HCSPEECH_OUTPUTPATH)
+
+.PHONY : clean xchatd speech4d
+
+clean:
+	-rm $(HCSPEECH_OUTPUTPATH)
+	cd xchatd; $(MAKE) -f Makefile.gdc clean
+	cd speech4d; $(MAKE) -f Makefile.gdc clean
+
+xchatd:
+	cd xchatd; $(MAKE) -f Makefile.gdc
+
+speech4d:
+	cd speech4d; $(MAKE) -f Makefile.gdc
+
+$(HCSPEECH_OUTPUTPATH): $(HCSPEECH_SOURCES) xchatd speech4d
+	if ! test -d $(OUTDIR); then mkdir $(OUTDIR); fi
+	gdc $(DFLAGS) -o "$@" $(HCSPEECH_SOURCES) $(HCSPEECH_LIBS) $(EXTRALIBS)
+	if test -d devenv; then cp $@ devenv/config/addons/$(HCSPEECH_OUTPUTFILE); fi
