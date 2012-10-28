@@ -48,7 +48,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath>.. ../xchatd ../speech4d</imppath>
   <fileImppath />
-  <outdir>..\bin</outdir>
+  <outdir>..\bin32</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -82,7 +82,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>../xchatd/lib/xchatd-d.lib ../speech4d/lib/speech4d-sapi-d.lib ../speech4d/lib/sapi.lib ole32.lib</libfiles>
+  <libfiles>../xchatd/lib32/xchatd-d.lib ../speech4d/lib32/speech4d-d.lib ../speech4d/lib32/sapi.lib ole32.lib</libfiles>
   <libpaths />
   <deffile>hcspeech.def</deffile>
   <resfile />
@@ -147,7 +147,7 @@
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
   <imppath>.. ../xchatd ../speech4d</imppath>
   <fileImppath />
-  <outdir>..\bin</outdir>
+  <outdir>..\bin32</outdir>
   <objdir>$(OutDir)</objdir>
   <objname />
   <libname />
@@ -181,7 +181,7 @@
   <cv2pdbOptions />
   <objfiles />
   <linkswitches />
-  <libfiles>../xchatd/lib/xchatd-d.lib ../speech4d/lib/speech4d-sapi-d.lib ../speech4d/lib/sapi.lib ole32.lib</libfiles>
+  <libfiles>../xchatd/lib32/xchatd-d.lib ../speech4d/lib32/speech4d-d.lib ../speech4d/lib32/sapi.lib ole32.lib</libfiles>
   <libpaths />
   <deffile>hcspeech.def</deffile>
   <resfile />

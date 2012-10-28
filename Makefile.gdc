@@ -8,7 +8,8 @@ ifeq ($(UNAME), Linux)
 	EXTRALIBS =
 else # Assume Windows
 	DLL =$1.dll
-	EXTRALIBS = -luuid -lole32 "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\sapi.lib"
+	EXTRALIBS = -lole32 -luuid
+	FLAGS += -mwindows
 endif
 
 ifneq ($(MODEL), 32)
@@ -35,9 +36,11 @@ endif
 ifeq ($(MODEL), 32)
 	OUTDIR = bin32
 	LIBDIR = lib32
+	EXTRALIBS += "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\sapi.lib"
 else
 	OUTDIR = bin
 	LIBDIR = lib
+	EXTRALIBS += -lsapi
 endif
 
 HCSPEECH_OUTPUTFILE = $(call DLL,hcspeech$(DEBUGSUFFIX))
@@ -46,7 +49,7 @@ HCSPEECH_OUTPUTPATH = $(OUTDIR)/$(HCSPEECH_OUTPUTFILE)
 HCSPEECH_LIBS = xchatd/$(LIBDIR)/libxchatd$(DEBUGSUFFIX).a speech4d/$(LIBDIR)/libspeech4d$(DEBUGSUFFIX).a
 HCSPEECH_SOURCES = hcspeech/hcspeech.d
 
-all: xchatd speech4d $(HCSPEECH_OUTPUTPATH)
+all: $(HCSPEECH_OUTPUTPATH)
 
 .PHONY : clean xchatd speech4d
 
