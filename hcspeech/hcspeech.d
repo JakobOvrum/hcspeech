@@ -1,251 +1,121 @@
 module hcspeech.hcspeech;
 
-import xchat.plugin;
-
-import speech.synthesis;
-
 import std.algorithm;
-import std.array;
-import std.conv;
 import std.path;
-import std.random;
 import std.range;
 import std.string;
 
 import file = std.file;
 import io = std.stdio;
 
-__gshared Synthesizer tts;
+import xchat.plugin;
+import speech.synthesis;
 
-/*
- * =========================================
- * Voice Tracking
- * =========================================
- */
-__gshared Voice[] allVoices;
+import hcspeech.base, hcspeech.commands;
 
-struct ChannelInfo
+struct TTSAction
 {
-	string name;
-	uint[] voiceDistribution;
+	alias void function(in char[][], in char[][]) Callback;
 
-	this(string name)
-	{
-		this.name = name;
-		voiceDistribution = new uint[](allVoices.length);
-	}
+	Callback callback;
+	string usage;
+	size_t minArgs;
 }
 
-auto findVoices(const(char)[] voiceSpecifier)
-{
-	voiceSpecifier = voiceSpecifier.toLower();
+__gshared TTSAction[string] actions;
+__gshared string[] actionList; // For ordered help output.
 
-	return allVoices.filter!(voice => toLower(voice.name).canFind(voiceSpecifier))();
+void addAction(string name, TTSAction.Callback callback, string usage, size_t minArgs = 0)
+{
+	actions[name] = TTSAction(callback, usage, minArgs);
+	actionList ~= usage;
 }
 
-Voice* voiceByName(in char[] name)
+void addHelpSeparator()
 {
-	auto voiceIndex = allVoices.countUntil!((voice, name) => voice.name == name)(name);
-	return voiceIndex == -1? null : &allVoices[voiceIndex];
+	actionList ~= "";
 }
 
-__gshared
+shared static this()
 {
-	ChannelInfo[] ttsChannels;
-	Voice[string] specifiedUserVoices;
-	Voice[string] userVoices;
+	addAction("help", &helpCommand, helpUsage);
+	addHelpSeparator();
+
+	addAction("toggle", &toggleCommand, toggleUsage);
+	addAction("add", &addCommand, addUsage, 1);
+	addAction("remove", &removeCommand, removeUsage, 1);
+	addAction("list", &listCommand, listUsage);
+	addHelpSeparator();
+
+	addAction("voicelist", &voiceListCommand, voiceListUsage);
+	addAction("assign", &assignCommand, assignUsage, 2);
+	addAction("unassign", &unassignCommand, unassignUsage, 1);
+	addAction("assignedvoices", &assignedVoicesCommand, assignedVoicesUsage);
+	addHelpSeparator();
+
+	addAction("volume", &volumeCommand, volumeUsage);
 }
 
-private Voice getUserVoice(ChannelInfo channel, in char[] nick)
-{
-	if(auto voice = nick in specifiedUserVoices)
-		return *voice;
-
-	if(auto voice = nick in userVoices)
-		return *voice;
-
-	size_t voiceIndex = 0;
-	auto leastUses = uint.max;
-
-	foreach(i, uses; channel.voiceDistribution)
-	{
-		if(uses < leastUses)
-		{
-			leastUses = uses;
-			voiceIndex = i;
-		}
-	}
-
-	auto voice = allVoices[voiceIndex];
-
-	userVoices[nick.idup] = voice;
-	++channel.voiceDistribution[voiceIndex];
-
-	writefln("Assigned voice to %s: %s", nick, voice.name);
-
-	return voice;
-}
-
-/*
-* =========================================
-* Commands
-* =========================================
-*/
-immutable ttsUsage = "Usage: TTS, toggle Text To Speech for the current channel";
+immutable ttsUsage = "Usage: TTS [action [args]], main TTS command. " ~
+"Toggles TTS for the current channel when given no arguments. " ~
+`Use "/TTS help" to see available actions.`;
 
 EatMode ttsCommand(in char[][] words, in char[][] words_eol)
 {
-	auto channel = getInfo("channel");
-	auto position = ttsChannels.countUntil!((channel, name) => channel.name == name)(channel);
-	if(position == -1)
+	if(words.length == 1)
 	{
-		ttsChannels ~= ChannelInfo(channel);
-		writefln("Started TTS in %s.", channel);
+		toggleCommand(words[1 .. $], words_eol[1 .. $]);
 	}
 	else
 	{
-		ttsChannels = ttsChannels.remove!(SwapStrategy.unstable)(position);
-		writefln("Stopped TTS in %s.", channel);
-	}
-	return EatMode.all;
-}
+		auto actionName = words[1];
 
-immutable voiceListUsage = "Usage: VOICELIST, list available Text To Speech voices";
-
-EatMode voiceListCommand(in char[][] words, in char[][] words_eol)
-{
-	foreach(i, voice; allVoices)
-	{
-		writefln("#%s: %s", i + 1, voice.name);
-	}
-	return EatMode.all;
-}
-
-immutable assignVoiceUsage = "Usage: ASSIGNVOICE <nick> <voice name>, " ~
-                             "assign a specific voice to a user by voice name.";
-
-EatMode assignVoiceCommand(in char[][] words, in char[][] words_eol)
-{
-	if(words.length < 3)
-	{
-		writefln(assignVoiceUsage);
-		return EatMode.all;
-	}
-
-	auto nick = words[1];
-	auto voiceSpecifier = words_eol[2];
-		
-	auto voices = findVoices(voiceSpecifier);
-	if(voices.empty)
-	{
-		writefln(`No voice found for specifier "%s". Use the VOICELIST command to list available voices.`, voiceSpecifier);
-		return EatMode.all;
-	}
-
-	auto firstVoice = voices.front;
-	voices.popFront();
-
-	if(voices.empty) // Only one voice found
-	{
-		specifiedUserVoices[nick.idup] = firstVoice;
-		writefln("Assigned voice to %s: %s", nick, firstVoice.name);
-	}
-	else // Ambiguous search
-	{
-		writefln("Specified name matches multiple voices. Which did you mean?");
-		auto app = appender!string();
-		
-		static if(__VERSION__ < 2060)
+		if(auto action = toLower(actionName) in actions)
 		{
-			auto names = map!(voice => voice.name)((&firstVoice)[0 .. 1].chain(voices));
-			auto joined = joiner(names, ", ");
-			copy(joined, app);
+			auto args = words[1 .. $];
+			auto args_eol = words_eol[1 .. $];
+
+			if(args.length - 1 >= action.minArgs)
+				action.callback(args, args_eol);
+			else
+			{
+				writefln("Usage: %s", action.usage);
+				writefln(`Action "%s" requires at least %s argument(s).`, actionName, action.minArgs);
+			}
 		}
 		else
 		{
-			(&firstVoice)[0 .. 1].chain(voices)
-				.map!(voice => voice.name)()
-				.joiner(", ")
-				.copy(app);
-		}
-
-		writefln(app.data);
-	}
-
-	return EatMode.all;
-}
-
-immutable clearVoiceUsage = "Usage: CLEARVOICE <nick>, unassign any previously " ~
-                            "assigned voice for the specified user.";
-
-EatMode clearVoiceCommand(in char[][] words, in char[][] words_eol)
-{
-	if(words.length < 2)
-	{
-		writefln(clearVoiceUsage);
-	}
-	else
-	{
-		auto nick = words[1];
-		if(nick in specifiedUserVoices)
-		{
-			specifiedUserVoices.remove(nick.idup); // Ew, idup :(
-			writefln("Voice cleared for user %s.", nick);
-		}
-		else
-		{
-			writefln("User %s doesn't have an assigned voice.", nick);
+			writefln(`Unknown TTS action "%s". Use "/TTS HELP" to see usage.`, actionName);
 		}
 	}
 	return EatMode.all;
 }
 
-immutable assignedVoicesUsage = "Usage: ASSIGNEDVOICES [nick filter], list assigned voices.";
+immutable helpUsage = "HELP [action], display help information.";
 
-EatMode assignedVoicesCommand(in char[][] words, in char[][] words_eol)
-{
-	if(words.length < 2)
-	{
-		if(specifiedUserVoices.length == 0)
-			writefln("There are no assigned voices.");
-		else
-		{
-			foreach(nick, voice; specifiedUserVoices)
-				writefln("%s: %s", nick, voice.name);
-		}
-	}
-	else
-	{
-		auto nickFilter = toLower(words[1]);
-		auto matches = specifiedUserVoices.keys().filter!(nick => toLower(nick).canFind(nickFilter))();
-		if(matches.empty)
-			writefln(`Found no assigned voices with the search "%s".`, words[1]);
-		else
-		{
-			foreach(nick; matches)
-				writefln("%s: %s", nick, specifiedUserVoices[nick].name);
-		}
-	}
-	return EatMode.all;
-}
-
-immutable ttsVolumeUsage = "Usage: TTSVOLUME [new volume in the range 0-100], set or display TTS volume.";
-
-EatMode ttsVolumeCommand(in char[][] words, in char[][] words_eol)
+void helpCommand(in char[][] words, in char[][] words_eol)
 {
 	if(words.length > 1)
 	{
-		auto volume = to!uint(words[1]);
-		if(volume > 100)
-			writefln("Volume level must be in the range 0-100.");
+		auto actionName = words[1];
+		if(auto action = toLower(actionName) in actions)
+		{
+			writefln("Usage: %s", action.usage);
+		}
 		else
-			tts.volume = volume;
+		{
+			writefln(`Unknown TTS action "%s". Use "/TTS HELP" to see usage.`, actionName);
+		}
 	}
 	else
 	{
-		writefln("TTS volume is %s/100", tts.volume);
+		writefln("Usage: TTS [action [arguments]], perform the specified Text To Speech related action.");
+		writefln("");
+		foreach(usage; actionList)
+			writefln("    %s", usage);
+		writefln("");
+		writefln("When no action is specified, the TOGGLE action is performed.");
 	}
-	return EatMode.all;
 }
 
 /*
@@ -368,11 +238,6 @@ void init(ref PluginInfo info)
 	loadSettings();
 
 	hookCommand("tts", &ttsCommand, ttsUsage);
-	hookCommand("voicelist", &voiceListCommand, voiceListUsage);
-	hookCommand("assignvoice", &assignVoiceCommand, assignVoiceUsage);
-	hookCommand("clearvoice", &clearVoiceCommand, clearVoiceUsage);
-	hookCommand("assignedvoices", &assignedVoicesCommand, assignedVoicesUsage);
-	hookCommand("ttsvolume", &ttsVolumeCommand, ttsVolumeUsage);
 
 	hookServer("PRIVMSG", &onMessage);
 

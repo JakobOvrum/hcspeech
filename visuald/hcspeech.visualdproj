@@ -200,6 +200,8 @@
  </Config>
  <Folder name="hcspeech">
   <Folder name="hcspeech">
+   <File path="..\hcspeech\base.d" />
+   <File path="..\hcspeech\commands.d" />
    <File path="..\hcspeech\dllmain.d" />
    <File path="..\hcspeech\hcspeech.d" />
   </Folder>
