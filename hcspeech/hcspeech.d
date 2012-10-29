@@ -13,6 +13,11 @@ import speech.synthesis;
 
 import hcspeech.base, hcspeech.commands;
 
+/*
+ * =========================================
+ * Command Setup
+ * =========================================
+ */
 struct TTSAction
 {
 	alias void function(in char[][], in char[][]) Callback;
@@ -54,6 +59,7 @@ shared static this()
 	addHelpSeparator();
 
 	addAction("volume", &volumeCommand, volumeUsage);
+	addAction("rate", &rateCommand, rateUsage);
 }
 
 immutable ttsUsage = "Usage: TTS [action [args]], main TTS command. " ~

@@ -202,22 +202,51 @@ void assignedVoicesCommand(in char[][] words, in char[][] words_eol)
 
 // TTS configuration management
 immutable volumeUsage = "VOLUME [new volume in the range 0-100], set or display TTS volume.";
+immutable rateUsage = "RATE [new rate], set or display TTS rate.";
 
 void volumeCommand(in char[][] words, in char[][] words_eol)
 {
 	if(words.length > 1)
 	{
-		auto volume = to!uint(words[1]);
+		uint volume;
+		try volume = to!uint(words[1]);
+		catch(ConvException e)
+		{
+			writefln("Volume must be a positive number.");
+			return;
+		}
+
 		if(volume > 100)
 			writefln("Volume level must be in the range 0-100.");
 		else
 		{
 			tts.volume = volume;
-			writefln("TTS volume is now %s/100", tts.volume);
+			writefln("TTS volume is now %s/100.", tts.volume);
 		}
 	}
 	else
 	{
-		writefln("TTS volume is %s/100", tts.volume);
+		writefln("TTS volume is %s/100.", tts.volume);
+	}
+}
+
+void rateCommand(in char[][] words, in char[][] words_eol)
+{
+	if(words.length > 1)
+	{
+		int rate;
+		try rate = to!int(words[1]);
+		catch(ConvException e)
+		{
+			writefln("Rate must be a number.");
+			return;
+		}
+
+		tts.rate = rate;
+		writefln("TTS rate is now %s.", tts.rate);
+	}
+	else
+	{
+		writefln("TTS rate is %s.", tts.rate);
 	}
 }
