@@ -15,8 +15,14 @@ import std.string;
 import file = std.file;
 import io = std.stdio;
 
-Synthesizer tts;
-Voice[] allVoices;
+__gshared Synthesizer tts;
+
+/*
+ * =========================================
+ * Voice Tracking
+ * =========================================
+ */
+__gshared Voice[] allVoices;
 
 struct ChannelInfo
 {
@@ -43,9 +49,12 @@ Voice* voiceByName(in char[] name)
 	return voiceIndex == -1? null : &allVoices[voiceIndex];
 }
 
-ChannelInfo[] ttsChannels;
-Voice[string] specifiedUserVoices;
-Voice[string] userVoices;
+__gshared
+{
+	ChannelInfo[] ttsChannels;
+	Voice[string] specifiedUserVoices;
+	Voice[string] userVoices;
+}
 
 private Voice getUserVoice(ChannelInfo channel, in char[] nick)
 {
@@ -77,6 +86,11 @@ private Voice getUserVoice(ChannelInfo channel, in char[] nick)
 	return voice;
 }
 
+/*
+* =========================================
+* Commands
+* =========================================
+*/
 immutable ttsUsage = "Usage: TTS, toggle Text To Speech for the current channel";
 
 EatMode ttsCommand(in char[][] words, in char[][] words_eol)
@@ -215,6 +229,30 @@ EatMode assignedVoicesCommand(in char[][] words, in char[][] words_eol)
 	return EatMode.all;
 }
 
+immutable ttsVolumeUsage = "Usage: TTSVOLUME [new volume in the range 0-100], set or display TTS volume.";
+
+EatMode ttsVolumeCommand(in char[][] words, in char[][] words_eol)
+{
+	if(words.length > 1)
+	{
+		auto volume = to!uint(words[1]);
+		if(volume > 100)
+			writefln("Volume level must be in the range 0-100.");
+		else
+			tts.volume = volume;
+	}
+	else
+	{
+		writefln("TTS volume is %s/100", tts.volume);
+	}
+	return EatMode.all;
+}
+
+/*
+* =========================================
+* TTS Hooks
+* =========================================
+*/
 EatMode onMessage(in char[][] words, in char[][] words_eol)
 {
 	auto channelName = words[2];
@@ -231,12 +269,17 @@ EatMode onMessage(in char[][] words, in char[][] words_eol)
 	if(message.length > 0 && message[0] == ':')
 		message = message[1 .. $];
 
-	tts.setVoice(getUserVoice(channel, user.nick));
+	tts.voice = getUserVoice(channel, user.nick);
 	tts.queue(message);
 
 	return EatMode.none;
 }
 
+/*
+* =========================================
+* Persistent Settings
+* =========================================
+*/
 string configFilePath()
 {
 	return buildPath(getInfo("xchatdir"), "hcspeech.conf");
@@ -303,6 +346,11 @@ void saveSettings()
 	}
 }
 
+/*
+* =========================================
+* Initialization
+* =========================================
+*/
 version(GNU) extern(C) void gc_init();
 
 void init(ref PluginInfo info)
@@ -324,6 +372,7 @@ void init(ref PluginInfo info)
 	hookCommand("assignvoice", &assignVoiceCommand, assignVoiceUsage);
 	hookCommand("clearvoice", &clearVoiceCommand, clearVoiceUsage);
 	hookCommand("assignedvoices", &assignedVoicesCommand, assignedVoicesUsage);
+	hookCommand("ttsvolume", &ttsVolumeCommand, ttsVolumeUsage);
 
 	hookServer("PRIVMSG", &onMessage);
 
