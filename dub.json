@@ -1,0 +1,19 @@
+{
+	"name": "hcspeech",
+	"description": "Text To Speech plugin for HexChat and XChat",
+	"authors": ["Jakob Ovrum"],
+	"copyright": "Copyright© Jakob Ovrum 2012-2014",
+	"homepage": "https://github.com/JakobOvrum/hcspeech",
+	"license": "MIT",
+
+	"targetType": "dynamicLibrary",
+	"targetPath": "bin",
+
+	"sourcePaths": ["hcspeech"],
+	"importPaths": ["xchatd", "speech4d"],
+
+	"dependencies": {
+		"xchatd": {"version": "~master", "path": "xchatd"},
+		"speech4d": {"version": "~master", "path": "speech4d"}
+	}
+}
