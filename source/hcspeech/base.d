@@ -1,7 +1,10 @@
 module hcspeech.base;
 
 import std.algorithm;
+import std.range.primitives;
+import std.range : zip;
 import std.string;
+import std.uni : asLowerCase;
 
 import hexchat.plugin;
 import speech.synthesis;
@@ -36,15 +39,13 @@ __gshared
 
 auto findVoices(const(char)[] voiceSpecifier)
 {
-	voiceSpecifier = voiceSpecifier.toLower();
-
-	return allVoices.filter!(voice => toLower(voice.name).canFind(voiceSpecifier))();
+	return allVoices.filter!(voice => voice.name.asLowerCase.canFind(voiceSpecifier.asLowerCase));
 }
 
 Voice* voiceByName(in char[] name)
 {
-	auto voiceIndex = allVoices.countUntil!((voice, name) => voice.name == name)(name);
-	return voiceIndex == -1? null : &allVoices[voiceIndex];
+	auto search = allVoices.find!((voice, name) => voice.name == name)(name);
+	return search.empty? null : &search.front;
 }
 
 Voice getUserVoice(ChannelInfo channel, in char[] nick)
@@ -55,24 +56,12 @@ Voice getUserVoice(ChannelInfo channel, in char[] nick)
 	if(auto voice = nick in userVoices)
 		return *voice;
 
-	size_t voiceIndex = 0;
-	auto leastUses = uint.max;
+	// Assign least used voice
+	auto min = allVoices.zip(channel.voiceDistribution).minPos!((a, b) => a[1] < b[1]);
+	userVoices[nick.idup] = min.front[0];
+	++min.front[1];
 
-	foreach(i, uses; channel.voiceDistribution)
-	{
-		if(uses < leastUses)
-		{
-			leastUses = uses;
-			voiceIndex = i;
-		}
-	}
-
-	auto voice = allVoices[voiceIndex];
-
-	userVoices[nick.idup] = voice;
-	++channel.voiceDistribution[voiceIndex];
-
-	writefln("Assigned voice to %s: %s", nick, voice.name);
-
-	return voice;
+	writefln("Assigned voice to %s: %s", nick, min.front[0].name);
+	return min.front[0];
 }
+

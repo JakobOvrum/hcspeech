@@ -43,8 +43,8 @@ void addCommand(in char[][] words, in char[][] words_eol)
 {
 	auto channel = words[1];
 
-	auto position = ttsChannels.countUntil!((channel, name) => channel.name == name)(channel);
-	if(position == -1)
+	auto search = ttsChannels.find!((channel, name) => channel.name == name)(channel);
+	if(search.empty)
 	{
 		ttsChannels ~= ChannelInfo(channel.idup);
 		writefln("Started TTS in %s.", channel);
@@ -74,28 +74,9 @@ void removeCommand(in char[][] words, in char[][] words_eol)
 void listCommand(in char[][] words, in char[][] words_eol)
 {
 	if(ttsChannels.empty)
-	{
 		writefln("TTS is not enabled for any channels.");
-	}
 	else
-	{
-		auto app = appender!string();
-
-		static if(__VERSION__ < 2060)
-		{
-			auto names = map!(channel => channel.name)(ttsChannels);
-			auto joined = joiner(names, ", ");
-			copy(joined, app);
-		}
-		else
-		{
-			ttsChannels.map!(channel => channel.name)()
-				.joiner(", ")
-				.copy(app);
-		}
-
-		writefln(app.data);
-	}
+		writefln("%(%s%|, %)", ttsChannels.map!(channel => channel.name));
 }
 
 // Voice management
@@ -112,8 +93,7 @@ immutable assignedVoicesUsage = "ASSIGNEDVOICES [nick filter], list assigned voi
 
 void voiceListCommand(in char[][] words, in char[][] words_eol)
 {
-	foreach(i, voice; allVoices)
-		writefln("#%s: %s", i + 1, voice.name);
+	writefln("%(%s%|, %)", allVoices.map!(v => v.name).enumerate(1).map!(pair => format("#%s %s")));
 }
 
 void assignCommand(in char[][] words, in char[][] words_eol)
@@ -139,23 +119,7 @@ void assignCommand(in char[][] words, in char[][] words_eol)
 	else // Ambiguous search
 	{
 		writefln("Specified name matches multiple voices. Which did you mean?");
-		auto app = appender!string();
-
-		static if(__VERSION__ < 2060)
-		{
-			auto names = map!(voice => voice.name)((&firstVoice)[0 .. 1].chain(voices));
-			auto joined = joiner(names, ", ");
-			copy(joined, app);
-		}
-		else
-		{
-			(&firstVoice)[0 .. 1].chain(voices)
-				.map!(voice => voice.name)()
-				.joiner(", ")
-				.copy(app);
-		}
-
-		writefln(app.data);
+		writefln("%(%s%|, %)", only(firstVoice).chain(voices).map!(v => v.name));
 	}
 }
 
@@ -169,7 +133,7 @@ void unassignCommand(in char[][] words, in char[][] words_eol)
 	}
 	else
 	{
-		writefln("User %s doesn't have an assigned voice.", nick);
+		writefln("User %s doesn't have a manually assigned voice.", nick);
 	}
 }
 
@@ -180,23 +144,16 @@ void assignedVoicesCommand(in char[][] words, in char[][] words_eol)
 		if(specifiedUserVoices.length == 0)
 			writefln("There are no assigned voices.");
 		else
-		{
-			foreach(nick, voice; specifiedUserVoices)
-				writefln("%s: %s", nick, voice.name);
-		}
+			writefln("%(%s%|, %)", specifiedUserVoices.byPair.map!(pair => format("%s: %s", pair[0], pair[1])));
 	}
 	else
 	{
-		auto nickFilter = toLower(words[1]);
+		auto matches = specifiedUserVoices.byPair.filter!(pair => pair[0].asLowerCase.canFind(words[1].asLowerCase));
 
-		auto matches = specifiedUserVoices.keys().filter!(nick => toLower(nick).canFind(nickFilter))();
 		if(matches.empty)
 			writefln(`Found no assigned voices with the search "%s".`, words[1]);
 		else
-		{
-			foreach(nick; matches)
-				writefln("%s: %s", nick, specifiedUserVoices[nick].name);
-		}
+			writefln("%(%s%|, %)", matches.map!(pair => format("%s: %s", pair[0], pair[1])));
 	}
 }
 
@@ -250,3 +207,4 @@ void rateCommand(in char[][] words, in char[][] words_eol)
 		writefln("TTS rate is %s.", tts.rate);
 	}
 }
+

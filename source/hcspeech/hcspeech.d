@@ -231,7 +231,7 @@ void init(ref PluginInfo info)
 {
 	info.name = "hcspeech";
 	info.description = "Text To Speech";
-	info.version_ = "0.1.1";
+	info.version_ = "0.1.2";
 	pluginInfo = info;
 
 	tts = Synthesizer.create();
