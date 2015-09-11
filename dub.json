@@ -10,7 +10,7 @@
 	"targetPath": "bin",
 	"postBuildCommands-linux": ["mv $PACKAGE_DIR/bin/libhcspeech.so $PACKAGE_DIR/bin/hcspeech.so || true"],
 
-	"sourcePaths": ["hcspeech"],
+	"sourcePaths": ["source"],
 
 	"dependencies": {
 		"hexchatd": {"version": "~>0.1.0"},
