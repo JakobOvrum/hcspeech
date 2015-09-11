@@ -253,7 +253,7 @@ void shutdown()
 
 version(Windows)
 {
-	import core.sys.windows.dll : SimpleDllMain;
+	import core.sys.windows.dll;
 	mixin SimpleDllMain;
 }
 
