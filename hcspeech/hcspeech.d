@@ -8,7 +8,7 @@ import std.string;
 import file = std.file;
 import io = std.stdio;
 
-import xchat.plugin;
+import hexchat.plugin;
 import speech.synthesis;
 
 import hcspeech.base, hcspeech.commands;
@@ -172,7 +172,7 @@ void loadSettings()
 	auto file = io.File(path, "r");
 
 	string nick;
-	
+
 	foreach(line; file.byLine())
 	{
 		auto stripped = line.strip();
@@ -227,15 +227,11 @@ void saveSettings()
 * Initialization
 * =========================================
 */
-version(GNU) extern(C) void gc_init();
-
 void init(ref PluginInfo info)
 {
-	version(GNU) gc_init();
-	
 	info.name = "hcspeech";
 	info.description = "Text To Speech";
-	info.version_ = "0.1";
+	info.version_ = "0.1.1";
 	pluginInfo = info;
 
 	tts = Synthesizer.create();
@@ -255,4 +251,11 @@ void shutdown()
 	saveSettings();
 }
 
-mixin(XchatPlugin!(init, shutdown));
+version(Windows)
+{
+	import core.sys.windows.dll : SimpleDllMain;
+	mixin SimpleDllMain;
+}
+
+mixin Plugin!(init, shutdown);
+

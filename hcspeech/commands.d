@@ -6,7 +6,7 @@ import std.conv;
 import std.range;
 import std.string;
 
-import xchat.plugin;
+import hexchat.plugin;
 
 import speech.synthesis;
 

@@ -7,6 +7,12 @@
 
 # Development Environment (XChat Client)
 /devenv
+/install.sh
 
 # Dub
 /.dub
+/dub.selections.json
+
+# Temporary files
+*.swp
+

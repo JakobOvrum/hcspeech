@@ -8,12 +8,13 @@
 
 	"targetType": "dynamicLibrary",
 	"targetPath": "bin",
+	"postBuildCommands-linux": ["mv $PACKAGE_DIR/bin/libhcspeech.so $PACKAGE_DIR/bin/hcspeech.so || true"],
 
 	"sourcePaths": ["hcspeech"],
-	"importPaths": ["xchatd", "speech4d"],
 
 	"dependencies": {
-		"xchatd": {"version": "~master", "path": "xchatd"},
-		"speech4d": {"version": "~master", "path": "speech4d"}
+		"hexchatd": {"version": "~>0.1.0"},
+		"speech4d": {"version": "~>0.1.0"}
 	}
 }
+

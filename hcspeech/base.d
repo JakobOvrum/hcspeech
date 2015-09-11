@@ -3,7 +3,7 @@ module hcspeech.base;
 import std.algorithm;
 import std.string;
 
-import xchat.plugin;
+import hexchat.plugin;
 import speech.synthesis;
 
 // Used for all speech synthesis in the plugin.
