@@ -8,6 +8,7 @@
 
 	"targetType": "dynamicLibrary",
 	"targetPath": "bin",
+	"preBuildCommands": ["git describe --tags > $PACKAGE_DIR/views/version.txt"],
 	"postBuildCommands-linux": ["mv $PACKAGE_DIR/bin/libhcspeech.so $PACKAGE_DIR/bin/hcspeech.so || true"],
 
 	"sourcePaths": ["source"],
