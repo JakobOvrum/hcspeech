@@ -2,8 +2,9 @@ module hcspeech.base;
 
 import std.algorithm;
 import std.range.primitives;
-import std.range : zip;
+import std.range : cycle, drop, iota, takeExactly, zip;
 import std.string;
+import std.random;
 import std.uni : asLowerCase;
 
 import hexchat.plugin;
@@ -57,11 +58,19 @@ Voice getUserVoice(ChannelInfo channel, in char[] nick)
 		return *voice;
 
 	// Assign least used voice
-	auto min = allVoices.zip(channel.voiceDistribution).minPos!((a, b) => a[1] < b[1]);
-	userVoices[nick.idup] = min.front[0];
-	++min.front[1];
+	auto offset = uniform(0, allVoices.length);
+	auto min = zip(iota(0, allVoices.length),
+				channel.voiceDistribution.cycle.drop(offset),
+				allVoices.cycle.drop(offset))
+		.minPos!((a, b) => a[1] < b[1]).front;
 
-	writefln("Assigned voice to %s: %s", nick, min.front[0].name);
-	return min.front[0];
+	auto minIndex = min[0];
+	auto voice = min[2];
+
+	userVoices[nick.idup] = voice;
+	++channel.voiceDistribution[minIndex];
+
+	writefln("Assigned voice to %s: %s", nick, voice.name);
+	return voice;
 }
 
