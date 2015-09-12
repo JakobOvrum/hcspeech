@@ -93,7 +93,7 @@ immutable assignedVoicesUsage = "ASSIGNEDVOICES [nick filter], list assigned voi
 
 void voiceListCommand(in char[][] words, in char[][] words_eol)
 {
-	writefln("%(%s%|, %)", allVoices.map!(v => v.name).enumerate(1).map!(pair => format("#%s %s")));
+	writefln("%-(%s%|, %)", allVoices.map!(v => v.name).enumerate(1).map!(pair => format("#%s %s", pair[0], pair[1])));
 }
 
 void assignCommand(in char[][] words, in char[][] words_eol)
@@ -119,7 +119,7 @@ void assignCommand(in char[][] words, in char[][] words_eol)
 	else // Ambiguous search
 	{
 		writefln("Specified name matches multiple voices. Which did you mean?");
-		writefln("%(%s%|, %)", only(firstVoice).chain(voices).map!(v => v.name));
+		writefln("%-(%s%|, %)", only(firstVoice).chain(voices).map!(v => v.name));
 	}
 }
 
@@ -144,7 +144,7 @@ void assignedVoicesCommand(in char[][] words, in char[][] words_eol)
 		if(specifiedUserVoices.length == 0)
 			writefln("There are no assigned voices.");
 		else
-			writefln("%(%s%|, %)", specifiedUserVoices.byPair.map!(pair => format("%s: %s", pair[0], pair[1])));
+			writefln("%-(%s%|, %)", specifiedUserVoices.byPair.map!(pair => format("%s: %s", pair[0], pair[1].name)));
 	}
 	else
 	{
@@ -153,7 +153,7 @@ void assignedVoicesCommand(in char[][] words, in char[][] words_eol)
 		if(matches.empty)
 			writefln(`Found no assigned voices with the search "%s".`, words[1]);
 		else
-			writefln("%(%s%|, %)", matches.map!(pair => format("%s: %s", pair[0], pair[1])));
+			writefln("%-(%s%|, %)", matches.map!(pair => format("%s: %s", pair[0], pair[1].name)));
 	}
 }
 
