@@ -1,0 +1,1 @@
+DFLAGS=-fPIC dub build
